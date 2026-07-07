@@ -1,5 +1,21 @@
 __pycache__/
 *.py[cod]
+# Environment files
+.env
+.env.*
+# Local VS Code settings
+.vscode/
+# Byte-compiled / logs
+*.log
+*.sqlite3
+.DS_Store
+# Secrets/config
+secrets.json
+credentials.json
+# Mac/Windows
+Thumbs.db
+__pycache__/
+*.py[cod]
 *$py.class
 *.so
 .Python

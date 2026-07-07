@@ -1,12 +1,22 @@
 import ast
 import re
 import logging
+import os
 from typing import List
 from schemas import RiskFinding, RiskResponse
 
 logger = logging.getLogger(__name__)
 
-GROQ_API_KEY = "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"
+# If a .env file exists, load it so environment variables are available locally.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    # dotenv is optional at runtime; environment variables may be set by the system.
+    pass
+
+# Load GROQ API key from environment; never hardcode secrets in source.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 class RiskPredictorEngine:
     def __init__(self):
@@ -15,9 +25,12 @@ class RiskPredictorEngine:
         
         try:
             from groq import Groq
-            self.groq_client = Groq(api_key=GROQ_API_KEY)
-            self.ai_loaded = True
-            logger.info("Groq AI client initialized successfully.")
+            if GROQ_API_KEY:
+                self.groq_client = Groq(api_key=GROQ_API_KEY)
+                self.ai_loaded = True
+                logger.info("Groq AI client initialized successfully.")
+            else:
+                logger.warning("GROQ_API_KEY not set; skipping Groq client initialization.")
         except Exception as e:
             logger.error(f"Failed to initialize Groq client. Falling back to static analysis only. Error: {e}")
 
