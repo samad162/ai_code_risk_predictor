@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan AI</title>
+    <style>
+        :root {
+            --bg-main: #0f111a; --bg-panel: #1a1c25; --bg-input: #050608;
+            --border: #2a2d3a; --text-main: #e4e6eb; --text-muted: #8b8fa0;
+            --accent: #4d8dff; --danger: #ff5470; --warning: #ffab4c; --success: #42d39b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { background-color: var(--bg-panel); border-bottom: 1px solid var(--border); padding: 12px 24px; font-weight: 700; font-size: 18px; }
+        .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background-color: var(--border); flex-grow: 1; overflow: hidden; }
+        .panel { background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
+        .panel-header { padding: 10px 16px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; color: var(--text-muted); }
+        .editor-container { flex-grow: 1; display: flex; overflow: hidden; }
+        #codeInput { flex-grow: 1; background-color: var(--bg-input); color: var(--text-main); border: none; outline: none; resize: none; padding: 16px; font-family: monospace; font-size: 14px; line-height: 1.6; }
+        .results-container { flex-grow: 1; overflow-y: auto; padding: 24px; }
+        .finding-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-left: 4px solid var(--text-muted); border-radius: 6px; padding: 14px; margin-bottom: 12px; }
+        .finding-card.critical { border-left-color: var(--danger); }
+        .finding-card.high { border-left-color: var(--warning); }
+        .finding-card.medium { border-left-color: var(--warning); }
+        .finding-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--accent); }
+        .finding-desc { font-size: 14px; }
+        .finding-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .actions { background-color: var(--bg-panel); border-top: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: flex-end; }
+        button { background-color: var(--accent); color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        button:disabled { background-color: var(--border); cursor: not-allowed; }
+        .score { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .summary { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <header>SecureScan AI</header>
+    <div class="workspace">
+        <div class="panel">
+            <div class="panel-header">Source Code Input</div>
+            <div class="editor-container">
+                <textarea id="codeInput" spellcheck="false" placeholder="Paste code here..."></textarea>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-header">Vulnerability Report</div>
+            <div class="results-container" id="resultsContainer">
+                <div style="color: var(--text-muted); text-align: center; margin-top: 40px;">Results will appear here</div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <button id="scanBtn" onclick="scanCode()">Scan Code</button>
+    </div>
+
+    <script>
+        async function scanCode() {
+            const code = document.getElementById('codeInput').value;
+            const btn = document.getElementById('scanBtn');
+            const container = document.getElementById('resultsContainer');
+            
+            if (!code.trim()) return alert('Please paste some code.');
+            
+            btn.disabled = true;
+            btn.innerText = 'Scanning...';
+            container.innerHTML = '<div style="color: var(--text-muted);">Analyzing...</div>';
+
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, language: 'python' })
+                });
+                const data = await res.json();
+                
+                let scoreColor = data.risk_score > 0.75 ? 'var(--danger)' : data.risk_score > 0.4 ? 'var(--warning)' : 'var(--success)';
+                let html = `<div class="summary">
+                    <div class="score" style="color: ${scoreColor};">Risk Score: ${(data.risk_score * 100).toFixed(1)}%</div>
+                    <div>${data.summary}</div>
+                </div>`;
+
+                if (data.findings && data.findings.length > 0) {
+                    data.findings.forEach(f => {
+                        html += `<div class="finding-card ${f.severity.toLowerCase()}">
+                            <div class="finding-header"><span>Line ${f.line_number}</span><span>${f.severity}</span></div>
+                            <div class="finding-desc">${f.issue}</div>
+                            <div class="finding-meta">Category: ${f.category}</div>
+                        </div>`;
+                    });
+                } else {
+                    html += '<div style="color: var(--success);">No static vulnerabilities found.</div>';
+                }
+                
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = `<div style="color: var(--danger);">Error: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Scan Code';
+            }
+        }
+    </script>
+</body>
+</html>
