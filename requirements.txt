@@ -1,6 +1,10 @@
-fastapi==0.109.2
-uvicorn==0.27.1
-pydantic==2.6.1
-transformers==4.37.2
-torch==2.2.0
-python-dotenv==1.0.0
+# Streamlit Cloud installs this file. Use compatible ranges instead of strict
+# patch pins so Cloud can choose wheels that match its current Python runtime.
+streamlit>=1.36
+pydantic>=2,<3
+python-dotenv>=1.0
+groq>=0.9
+
+# Optional: only needed if you also run the legacy FastAPI server in main.py.
+fastapi>=0.109
+uvicorn>=0.27

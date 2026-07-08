@@ -8,7 +8,21 @@
    - Windows: `venv\Scripts\activate`
    - Mac/Linux: `source venv/bin/activate`
 5. Install dependencies: `pip install -r requirements.txt`
-6. Run the server: `uvicorn main:app --reload`
-7. Open your browser and go to: `http://localhost:8000`
+6. For the Streamlit UI, run: `streamlit run streamlit_app.py`
+7. Optional legacy API server: `uvicorn main:app --reload` and open `http://localhost:8000`
 
-Note: On the first run, the app will download the CodeBERT AI model (~500MB) from HuggingFace. If you lack internet, it will gracefully fall back to static AST/Regex analysis.
+Note: The app runs deterministic static AST/Regex analysis by default. Add a `GROQ_API_KEY` environment variable or Streamlit secret to enable AI-assisted scoring.
+## Streamlit Cloud Deployment
+1. Push this repository to GitHub.
+2. In Streamlit Community Cloud, choose **New app** and select this repository.
+3. Set the main file path to `streamlit_app.py`.
+4. Use the latest compatible dependency versions from `requirements.txt`; the file intentionally avoids strict patch pins so Streamlit Cloud can install wheels for its Python runtime.
+5. Optional: add `GROQ_API_KEY` under **App settings → Secrets** to enable AI-assisted scoring. Without it, the app still runs with deterministic static analysis.
+6. Deploy the app.
+
+## Local Streamlit Run
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
