@@ -11,4 +11,17 @@
 6. Run the server: `uvicorn main:app --reload`
 7. Open your browser and go to: `http://localhost:8000`
 
-Note: On the first run, the app will download the CodeBERT AI model (~500MB) from HuggingFace. If you lack internet, it will gracefully fall back to static AST/Regex analysis.
+Note: The app runs deterministic static AST/Regex analysis by default. Add a `GROQ_API_KEY` environment variable or Streamlit secret to enable AI-assisted scoring.
+## Streamlit Cloud Deployment
+1. Push this repository to GitHub.
+2. In Streamlit Community Cloud, choose **New app** and select this repository.
+3. Set the main file path to `streamlit_app.py`.
+4. Optional: add `GROQ_API_KEY` under **App settings → Secrets** to enable AI-assisted scoring. Without it, the app still runs with deterministic static analysis.
+5. Deploy the app.
+
+## Local Streamlit Run
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
